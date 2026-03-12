@@ -17,13 +17,13 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Cuando el usuario se autentica, navegar a inventory
-  useEffect(() => {
+  /*useEffect(() => {
     if (user && !isSubmitting) {
       console.log("✅ Usuario detectado, navegando a inventory...")
       toast.success("¡Sesión iniciada correctamente!")
       navigate("/inventory")
     }
-  }, [user, navigate, isSubmitting])
+  }, [user, navigate, isSubmitting])*/
 
   // Mostrar errores en toast
   useEffect(() => {
@@ -51,6 +51,8 @@ export default function LoginPage() {
       console.log("🔐 Iniciando login...")
       await login(formData)
       console.log("✨ Login exitoso, navegando...")
+      toast.success("¡Sesión iniciada correctamente!")
+      navigate("/inventory")
       // La navegación se hace automáticamente via useEffect cuando user cambia
     } catch (err: any) {
       setIsSubmitting(false)
