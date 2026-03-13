@@ -15,6 +15,11 @@ interface AuthStore extends AuthState {
   resetInactivityTimer: () => void
   startSessionMonitoring: () => void
   stopSessionMonitoring: () => void
+  createUserWithRole: (email: string, nombreCompleto: string, rol: "admin" | "default") => Promise<string>
+  getAllUsers: () => Promise<Profile[]>
+  updateUserRole: (userId: string, newRole: "admin" | "default") => Promise<void>
+  deactivateUser: (userId: string) => Promise<void>
+  resendConfirmationEmail: (email: string) => Promise<void>
 }
 
 // Variables globales para timeout de sesión
@@ -81,6 +86,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       })
 
       if (error) {
+        // Detectar error específico de email no confirmado
+        if (error.message.includes("Email not confirmed")) {
+          throw new Error(`Tu cuenta aún no ha sido confirmada. Revisa tu correo electrónico (${credentials.email}) para confirmar tu cuenta. Si no ves el correo, verifica tu bandeja de spam.`)
+        }
         throw new Error(error.message || "Error al iniciar sesión")
       }
 
@@ -333,5 +342,222 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   clearError: () => {
     set({ error: null })
+  },
+
+  // ========== CRUD de Usuarios (Fase 3) ==========
+  
+  createUserWithRole: async (email: string, nombreCompleto: string, rol: "admin" | "default") => {
+    set({ isLoading: true, error: null })
+    try {
+      const defaultPassword = "53rC0p.2K26"
+      
+      console.log(`📝 Creando usuario ${rol}: ${email}`)
+
+      // Validar dominio de email
+      if (!email.endsWith("@sercop.gob.ec") && !email.endsWith("@gmail.com")) {
+        throw new Error("El correo debe ser de dominio @sercop.gob.ec o @gmail.com")
+      }
+
+      // Crear usuario usando signUp (envía correo de confirmación automáticamente)
+      // NO usamos admin.createUser porque requiere service_role en el cliente
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: defaultPassword,
+        options: {
+          data: {
+            nombre_completo: nombreCompleto,
+            rol: rol,
+          },
+          emailRedirectTo: `${window.location.origin}/login`,
+        },
+      })
+
+      if (authError) {
+        throw new Error(authError.message)
+      }
+
+      if (!authData.user) {
+        throw new Error("No se pudo crear el usuario")
+      }
+
+      console.log(`📧 Correo de confirmación enviado a: ${email}`)
+
+      // Crear perfil en BD
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: authData.user.id,
+          email: email,
+          nombre_completo: nombreCompleto,
+          rol: rol,
+          activo: true,
+        })
+
+      if (profileError) {
+        throw new Error(profileError.message)
+      }
+
+      // Crear permisos en BD
+      const permiso_tipo = rol === "admin" ? "escritura" : "lectura"
+      const { error: permError } = await supabase
+        .from("user_permissions")
+        .insert({
+          user_id: authData.user.id,
+          permiso_tipo: permiso_tipo,
+          recurso: "inventario",
+          creado_por: get().user?.id || null,
+        })
+
+      if (permError) {
+        console.warn("⚠️ Aviso al crear permisos:", permError.message)
+        // No lanzamos error aquí porque el usuario se creó correctamente
+      }
+
+      console.log(`✅ Usuario ${rol} creado: ${email} - Correo de confirmación enviado`)
+      set({ isLoading: false })
+      return authData.user.id
+    } catch (error: any) {
+      console.error("❌ Error creando usuario:", error.message)
+      set({ error: error.message, isLoading: false })
+      throw error
+    }
+  },
+
+  getAllUsers: async () => {
+    try {
+      const user = get().user
+      if (!user) throw new Error("Usuario no autenticado")
+
+      // Verificar que sea admin
+      const profile = get().profile
+      if (profile?.rol !== "admin") {
+        throw new Error("Solo admins pueden listar usuarios")
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("activo", true)
+        .order("fecha_creacion", { ascending: false })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data as Profile[]
+    } catch (error: any) {
+      console.error("❌ Error listando usuarios:", error.message)
+      set({ error: error.message })
+      throw error
+    }
+  },
+
+  updateUserRole: async (userId: string, newRole: "admin" | "default") => {
+    set({ isLoading: true, error: null })
+    try {
+      const user = get().user
+      if (!user) throw new Error("Usuario no autenticado")
+
+      // Verificar que sea admin
+      const profile = get().profile
+      if (profile?.rol !== "admin") {
+        throw new Error("Solo admins pueden cambiar roles")
+      }
+
+      console.log(`🔄 Cambiando rol de usuario ${userId} a ${newRole}`)
+
+      // Actualizar perfil
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ rol: newRole })
+        .eq("id", userId)
+
+      if (profileError) {
+        throw new Error(profileError.message)
+      }
+
+      // Actualizar permisos
+      const permiso_tipo = newRole === "admin" ? "escritura" : "lectura"
+      const { error: permError } = await supabase
+        .from("user_permissions")
+        .update({ permiso_tipo })
+        .eq("user_id", userId)
+        .eq("recurso", "inventario")
+
+      if (permError) {
+        console.warn("⚠️ Aviso al actualizar permisos:", permError.message)
+      }
+
+      console.log(`✅ Rol actualizado a ${newRole}`)
+      set({ isLoading: false })
+    } catch (error: any) {
+      console.error("❌ Error actualizando rol:", error.message)
+      set({ error: error.message, isLoading: false })
+      throw error
+    }
+  },
+
+  deactivateUser: async (userId: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      const user = get().user
+      if (!user) throw new Error("Usuario no autenticado")
+
+      // Verificar que sea admin
+      const profile = get().profile
+      if (profile?.rol !== "admin") {
+        throw new Error("Solo admins pueden desactivar usuarios")
+      }
+
+      // No permitir desactivar a sí mismo
+      if (userId === user.id) {
+        throw new Error("No puedes desactivarte a ti mismo")
+      }
+
+      console.log(`🗑️ Desactivando usuario ${userId}`)
+
+      // Soft-delete: marcar como inactivo
+      const { error } = await supabase
+        .from("profiles")
+        .update({ activo: false })
+        .eq("id", userId)
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      console.log(`✅ Usuario desactivado`)
+      set({ isLoading: false })
+    } catch (error: any) {
+      console.error("❌ Error desactivando usuario:", error.message)
+      set({ error: error.message, isLoading: false })
+      throw error
+    }
+  },
+
+  resendConfirmationEmail: async (email: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      console.log(`📧 Reenviando correo de confirmación a: ${email}`)
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/login`,
+        },
+      })
+
+      if (error) {
+        throw new Error(error.message || "Error al reenviar correo")
+      }
+
+      console.log(`✅ Correo de confirmación reenviado`)
+      set({ isLoading: false, error: null })
+    } catch (error: any) {
+      console.error("❌ Error reenviando correo:", error.message)
+      set({ error: error.message, isLoading: false })
+      throw error
+    }
   },
 }))

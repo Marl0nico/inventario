@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/useAuthStore"
-import { Eye, EyeOff, Loader } from "lucide-react"
+import { Eye, EyeOff, Loader, AlertCircle, Mail } from "lucide-react"
 import { toast } from "react-toastify"
 import type { LoginCredentials } from "../types/auth"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, user, error, clearError } = useAuthStore()
+  const { login, error, clearError, resendConfirmationEmail, isLoading } = useAuthStore()
 
   const [formData, setFormData] = useState<LoginCredentials>({
     email: "",
@@ -15,27 +15,27 @@ export default function LoginPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResendingEmail, setIsResendingEmail] = useState(false)
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false)
+  const [emailForResend, setEmailForResend] = useState("")
 
-  // Cuando el usuario se autentica, navegar a inventory
-  /*useEffect(() => {
-    if (user && !isSubmitting) {
-      console.log("✅ Usuario detectado, navegando a inventory...")
-      toast.success("¡Sesión iniciada correctamente!")
-      navigate("/inventory")
-    }
-  }, [user, navigate, isSubmitting])*/
-
-  // Mostrar errores en toast
+  // Mostrar errores en toast y detectar si es por email no confirmado
   useEffect(() => {
     if (error && isSubmitting) {
-      toast.error(error)
+      if (error.includes("email no ha sido confirmada") || error.includes("Email not confirmed")) {
+        setEmailNotConfirmed(true)
+        setEmailForResend(formData.email)
+      } else {
+        toast.error(error)
+      }
     }
-  }, [error, isSubmitting])
+  }, [error, isSubmitting, formData.email])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
     clearError()
+    setEmailNotConfirmed(false)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,12 +53,34 @@ export default function LoginPage() {
       console.log("✨ Login exitoso, navegando...")
       toast.success("¡Sesión iniciada correctamente!")
       navigate("/inventory")
-      // La navegación se hace automáticamente via useEffect cuando user cambia
     } catch (err: any) {
       setIsSubmitting(false)
       const errorMessage = err.message || "Error al iniciar sesión"
       console.error("❌ Error capturado en handleSubmit:", errorMessage)
-      toast.error(errorMessage)
+      
+      if (errorMessage.includes("email no ha sido confirmada") || errorMessage.includes("Email not confirmed")) {
+        setEmailNotConfirmed(true)
+        setEmailForResend(formData.email)
+      } else {
+        toast.error(errorMessage)
+      }
+    }
+  }
+
+  const handleResendEmail = async () => {
+    if (!emailForResend) {
+      toast.error("No hay correo para reenviar")
+      return
+    }
+
+    setIsResendingEmail(true)
+    try {
+      await resendConfirmationEmail(emailForResend)
+      toast.success("✅ Correo de confirmación reenviado. Verifica tu bandeja de entrada.")
+    } catch (err: any) {
+      toast.error(err.message || "Error al reenviar correo")
+    } finally {
+      setIsResendingEmail(false)
     }
   }
 
@@ -74,6 +96,29 @@ export default function LoginPage() {
             </h1>
             <p className="text-gray-600">Inicia sesión para continuar</p>
           </div>
+
+          {/* Mensaje: Email no confirmado */}
+          {emailNotConfirmed && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex gap-3">
+                <AlertCircle className="text-amber-600 flex-shrink-0" size={20} />
+                <div>
+                  <h3 className="font-semibold text-amber-900 mb-2">Cuenta no confirmada</h3>
+                  <p className="text-sm text-amber-800 mb-4">
+                    Tu correo aún no ha sido confirmado. Hemos enviado un enlace de confirmación a <strong>{emailForResend}</strong>. Haz clic en el enlace para verificar tu cuenta.
+                  </p>
+                  <button
+                    onClick={handleResendEmail}
+                    disabled={isResendingEmail || isLoading}
+                    className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded transition disabled:opacity-50"
+                  >
+                    <Mail size={16} />
+                    {isResendingEmail ? "Reenviando..." : "Reenviar correo"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -154,7 +199,8 @@ export default function LoginPage() {
           <h3 className="font-semibold mb-3">ℹ️ Información importante</h3>
           <ul className="space-y-2 text-sm leading-relaxed">
             <li>✓ Usa tu correo @sercop.gob.ec o @gmail.com</li>
-            <li>✓ Recuerda verificar tu cuenta por correo</li>
+            <li>✓ Debes confirmar tu cuenta haciendo clic en el enlace del correo</li>
+            <li>✓ Revisa tu bandeja de spam si no ves el correo</li>
             <li>✓ Los datos del inventario son confidenciales</li>
           </ul>
         </div>

@@ -2,12 +2,12 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../hooks/useAuth"
 import { useAuthStore } from "../../store/useAuthStore"
-import { LogOut, Lock, ChevronDown, Shield } from "lucide-react"
+import { LogOut, Lock, ChevronDown, Shield, Users, User } from "lucide-react"
 import ChangePasswordModal from "../auth/ChangePasswordModal"
 
 export default function UserHeader() {
   const navigate = useNavigate()
-  const { user, profile, permission, isAdmin } = useAuth()
+  const { user, profile, isAdmin } = useAuth()
   const { logout } = useAuthStore()
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -29,22 +29,32 @@ export default function UserHeader() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex justify-between items-center">
-          {/* Left side - Title */}
-          <div>
+          {/* Left side - Navigation */}
+          <div className="flex items-center gap-6">
             <h1 className="text-lg font-semibold text-gray-900">Sistema de Inventario</h1>
+            
+            {/* Navigation Links */}
+            <nav className="hidden md:flex items-center gap-4">
+              <button
+                onClick={() => navigate("/inventory")}
+                className="text-gray-600 hover:text-gray-900 transition font-medium"
+              >
+                Inventario
+              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/users")}
+                  className="text-gray-600 hover:text-gray-900 transition font-medium flex items-center gap-2"
+                >
+                  <Users size={18} />
+                  Usuarios
+                </button>
+              )}
+            </nav>
           </div>
 
           {/* Right side - User Menu */}
           <div className="flex items-center gap-4">
-            {/* Permission Badge */}
-            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              permission === "escritura"
-                ? "bg-green-100 text-green-800"
-                : "bg-blue-100 text-blue-800"
-            }`}>
-              {permission === "escritura" ? "✏️ Escritura" : "👁️ Lectura"}
-            </div>
-
             {/* Admin Badge */}
             {isAdmin && (
               <div className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 flex items-center gap-1">
@@ -61,7 +71,7 @@ export default function UserHeader() {
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">{profile.nombre_completo || "Usuario"}</p>
-                  <p className="text-xs text-gray-600">{profile.email}</p>
+                  <p className="text-xs text-gray-600">{profile.rol}</p>
                 </div>
                 <ChevronDown
                   size={18}
@@ -78,13 +88,49 @@ export default function UserHeader() {
                     <p className="text-xs text-gray-600">{profile.email}</p>
                   </div>
 
+                  {/* Navigation Links Mobile */}
+                  <div className="md:hidden border-b border-gray-200">
+                    <button
+                      onClick={() => {
+                        navigate("/inventory")
+                        setIsMenuOpen(false)
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-100 transition flex items-center gap-3 text-gray-700"
+                    >
+                      📊 Inventario
+                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          navigate("/users")
+                          setIsMenuOpen(false)
+                        }}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-100 transition flex items-center gap-3 text-gray-700 border-t border-gray-200"
+                      >
+                        <Users size={18} />
+                        Usuarios
+                      </button>
+                    )}
+                  </div>
+
                   {/* Menu Items */}
+                  <button
+                    onClick={() => {
+                      navigate("/profile")
+                      setIsMenuOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 transition flex items-center gap-3 text-gray-700"
+                  >
+                    <User size={18} />
+                    <span>Mi Perfil</span>
+                  </button>
+
                   <button
                     onClick={() => {
                       setIsChangePasswordModalOpen(true)
                       setIsMenuOpen(false)
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-100 transition flex items-center gap-3 text-gray-700"
+                    className="w-full text-left px-4 py-3 hover:bg-gray-100 transition flex items-center gap-3 text-gray-700 border-t border-gray-200"
                   >
                     <Lock size={18} />
                     <span>Cambiar Contraseña</span>

@@ -9,7 +9,7 @@ import { useAuth } from "../hooks/useAuth"
 Modal.setAppElement("#root") // importante para accesibilidad
 
 export default function InventoryPage() {
-  const {permission} = useAuth()
+  const { profile } = useAuth()
   const {
     equipos,
     page,
@@ -21,6 +21,9 @@ export default function InventoryPage() {
     updateEquipo,
     deleteEquipo,
   } = useInventory(50)
+  
+  // Solo admins pueden crear, editar y eliminar
+  const isAdmin = profile?.rol === "admin"
 
   // Filtros
   const [search, setSearch] = useState("")
@@ -191,15 +194,14 @@ export default function InventoryPage() {
               </button>
             )}
 
-          {permission==="escritura"&&(
-
-            <button
-              onClick={() => openModal("crear")}
-              className="px-6 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
-            >
-              <Plus size={18} /> Nuevo Equipo
-            </button>
-          )}
+            {isAdmin && (
+              <button
+                onClick={() => openModal("crear")}
+                className="px-6 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+              >
+                <Plus size={18} /> Nuevo Equipo
+              </button>
+            )}
 
           </div>
 
@@ -286,20 +288,24 @@ export default function InventoryPage() {
                         >
                           <Eye size={18} />
                         </button>
-                        <button
-                          title="Editar"
-                          className="p-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition"
-                          onClick={() => openModal("editar", equipo)}
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button
-                          title="Desactivar"
-                          className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
-                          onClick={() => openModal("eliminar", equipo)}
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {isAdmin && (
+                          <>
+                            <button
+                              title="Editar"
+                              className="p-2 bg-yellow-100 text-yellow-600 rounded-lg hover:bg-yellow-200 transition"
+                              onClick={() => openModal("editar", equipo)}
+                            >
+                              <Edit2 size={18} />
+                            </button>
+                            <button
+                              title="Desactivar"
+                              className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                              onClick={() => openModal("eliminar", equipo)}
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
