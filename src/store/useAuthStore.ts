@@ -349,7 +349,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   createUserWithRole: async (email: string, nombreCompleto: string, rol: "admin" | "default") => {
     set({ isLoading: true, error: null })
     try {
-      const defaultPassword = "53rC0p.2K26"
+      const defaultPassword = import.meta.env.VITE_DEFAULT_PASSWORD;
       
       console.log(`📝 Creando usuario ${rol}: ${email}`)
 

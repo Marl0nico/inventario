@@ -153,14 +153,14 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:opacity-50"
                 />
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isSubmitting}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition disabled:opacity-50"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+                </button> */}
               </div>
             </div>
 
@@ -182,7 +182,7 @@ export default function LoginPage() {
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center text-sm text-gray-600">
+          {/* <div className="mt-6 text-center text-sm text-gray-600">
             <p>¿Es tu primer acceso?</p>
             <button
               onClick={() => navigate("/register-first-admin")}
@@ -191,14 +191,14 @@ export default function LoginPage() {
             >
               Registrar primer administrador
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Info Box */}
         <div className="mt-8 bg-white/10 backdrop-blur-md rounded-lg p-6 text-white">
           <h3 className="font-semibold mb-3">ℹ️ Información importante</h3>
           <ul className="space-y-2 text-sm leading-relaxed">
-            <li>✓ Usa tu correo @sercop.gob.ec o @gmail.com</li>
+            <li>✓ Si necesitas acceso al inventario, contacta a un administrador</li>
             <li>✓ Debes confirmar tu cuenta haciendo clic en el enlace del correo</li>
             <li>✓ Revisa tu bandeja de spam si no ves el correo</li>
             <li>✓ Los datos del inventario son confidenciales</li>

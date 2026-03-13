@@ -239,8 +239,7 @@ export default function UsersManagement() {
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
             <strong>⚠️ Importante:</strong> Al crear un nuevo usuario, se envía un correo de confirmación a <strong>{formData.email || 'su correo'}</strong>. 
-            El usuario debe confirmar su cuenta haciendo clic en el enlace del correo antes de poder iniciar sesión. 
-            La contraseña temporal es <code className="bg-blue-100 px-2 py-1 rounded">53rC0p.2K26</code> y se recomienda cambiarla al primer login.
+            El usuario debe confirmar su cuenta haciendo clic en el enlace del correo antes de poder iniciar sesión.
           </p>
         </div>
       </div>
