@@ -232,12 +232,12 @@ export default function InventoryPage() {
                   <th className="px-3 py-3 text-left text-sm font-semibold">Ubicación</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">RAM</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">Almacenamiento</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold">SO</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold">Equipo</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold">IP</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold">Sistema Operativo</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold">Nombre equipo</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold">Dirección IP</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">Estado</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">Accesorios</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold">Notas</th>
+                  <th className="px-3 py-3 text-left text-sm font-semibold">Observaciones</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">Cédula</th>
                   <th className="px-3 py-3 text-left text-sm font-semibold">Ciudad</th>
                   <th className="px-3 py-3 text-center text-sm font-semibold">Acciones</th>

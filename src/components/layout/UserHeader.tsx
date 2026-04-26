@@ -31,20 +31,20 @@ export default function UserHeader() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex justify-between items-center">
           {/* Left side - Navigation */}
           <div className="flex items-center gap-6">
-            <h1 className="text-lg font-semibold text-gray-900">Sistema de Inventario</h1>
+            <button className="text-lg font-semibold text-gray-900 cursor-pointer" onClick={()=>navigate("/inventory")}>Sistema de Inventario</button>
             
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center gap-4">
-              <button
+              {/* <button
                 onClick={() => navigate("/inventory")}
                 className="text-gray-600 hover:text-gray-900 transition font-medium"
               >
                 Inventario
-              </button>
+              </button> */}
               {isAdmin && (
                 <button
                   onClick={() => navigate("/users")}
-                  className="text-gray-600 hover:text-gray-900 transition font-medium flex items-center gap-2"
+                  className="text-gray-600 hover:text-gray-900 transition font-medium flex items-center gap-2 cursor-pointer"
                 >
                   <Users size={18} />
                   Usuarios

@@ -382,31 +382,37 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       console.log(`📧 Correo de confirmación enviado a: ${email}`)
 
-      // Crear perfil en BD
+      // Crear/actualizar perfil en BD (puede existir si hay trigger en auth.users)
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert({
-          id: authData.user.id,
-          email: email,
-          nombre_completo: nombreCompleto,
-          rol: rol,
-          activo: true,
-        })
+        .upsert(
+          {
+            id: authData.user.id,
+            email: email,
+            nombre_completo: nombreCompleto,
+            rol: rol,
+            activo: true,
+          },
+          { onConflict: "id", returning: "minimal" }
+        )
 
       if (profileError) {
         throw new Error(profileError.message)
       }
 
-      // Crear permisos en BD
+      // Crear/actualizar permisos en BD
       const permiso_tipo = rol === "admin" ? "escritura" : "lectura"
       const { error: permError } = await supabase
         .from("user_permissions")
-        .insert({
-          user_id: authData.user.id,
-          permiso_tipo: permiso_tipo,
-          recurso: "inventario",
-          creado_por: get().user?.id || null,
-        })
+        .upsert(
+          {
+            user_id: authData.user.id,
+            permiso_tipo: permiso_tipo,
+            recurso: "inventario",
+            creado_por: get().user?.id || null,
+          },
+          { onConflict: "user_id,recurso", returning: "minimal" }
+        )
 
       if (permError) {
         console.warn("⚠️ Aviso al crear permisos:", permError.message)

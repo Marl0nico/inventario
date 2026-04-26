@@ -236,12 +236,12 @@ export default function UsersManagement() {
         </div>
 
         {/* Información adicional */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        {/* <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
             <strong>⚠️ Importante:</strong> Al crear un nuevo usuario, se envía un correo de confirmación a <strong>{formData.email || 'su correo'}</strong>. 
             El usuario debe confirmar su cuenta haciendo clic en el enlace del correo antes de poder iniciar sesión.
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* Modal: Crear Usuario */}
@@ -310,10 +310,10 @@ export default function UsersManagement() {
             </div>
 
             <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
-              <div className="mb-2">
+              {/* <div className="mb-2">
                 <p className="font-semibold">Contraseña temporal:</p>
                 <code className="bg-white px-2 py-1 rounded border border-gray-200">53rC0p.2K26</code>
-              </div>
+              </div> */}
               <p className="text-xs text-gray-600">
                 ⚠️ Se enviará un correo de confirmación a <strong>{formData.email || 'su correo'}</strong>. 
                 El usuario debe confirmar su cuenta antes de poder iniciar sesión.
